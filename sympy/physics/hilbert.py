@@ -6,9 +6,9 @@ References
 [1] http://en.wikipedia.org/wiki/Hilbert_space
 """
 
-from sympy import Basic, Interval, oo, sympify
+from sympy import Expr, Interval, oo, sympify
 
-class HilbertSpace(Basic):
+class HilbertSpace(Expr):
     """An abstract Hilbert space for quantum mechanics.
 
     Examples
@@ -19,7 +19,7 @@ class HilbertSpace(Basic):
     description = 'General abstract Hilbert space.'
 
     def __new__(cls):
-        obj = Basic.__new__(cls, commutative=False)
+        obj = Expr.__new__(cls, commutative=False)
         return obj
 
     @property
@@ -55,7 +55,7 @@ class HilbertSpace(Basic):
             return True
         else:
             return False
-        
+
 class l2(HilbertSpace):
     """l2 Hilbert space of any dimension.
 
@@ -77,7 +77,7 @@ class l2(HilbertSpace):
         dimension = sympify(dimension)
         if not (dimension.is_Integer or dimension is oo or dimension.is_Symbol):
             raise TypeError('l2 dimension must be an integer, oo or a Symbol: %r' % dimension)
-        obj = Basic.__new__(cls, dimension, commutative=False)
+        obj = Expr.__new__(cls, dimension, commutative=False)
         return obj
 
     def _eval_subs(self, old, new):
@@ -112,7 +112,7 @@ class L2(HilbertSpace):
     def __new__(cls, interval):
         if not isinstance(interval, Interval):
             raise TypeError('L2 interval must be an Interval instance: %r' % interval)
-        obj = Basic.__new__(cls, interval, commutative=False)
+        obj = Expr.__new__(cls, interval, commutative=False)
         return obj
 
     def _eval_subs(self, old, new):
@@ -154,7 +154,7 @@ class FockSpace(HilbertSpace):
     """
 
     def __new__(cls):
-        obj = Basic.__new__(cls, commutative=False)
+        obj = Expr.__new__(cls, commutative=False)
         return obj
 
     @property
@@ -185,9 +185,9 @@ class TensorProductHilbertSpace(HilbertSpace):
 
     def __new__(cls, *args):
         r = cls.eval(args)
-        if isinstance(r, Basic):
+        if isinstance(r, Expr):
             return r
-        obj = Basic.__new__(cls, *args)
+        obj = Expr.__new__(cls, *args)
         return obj
 
     @classmethod
@@ -255,9 +255,9 @@ class DirectSumHilbertSpace(HilbertSpace):
     """
     def __new__(cls, *args):
         r = cls.eval(args)
-        if isinstance(r, Basic):
+        if isinstance(r, Expr):
             return r
-        obj = Basic.__new__(cls, *args)
+        obj = Expr.__new__(cls, *args)
         return obj
 
     @classmethod

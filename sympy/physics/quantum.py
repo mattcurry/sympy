@@ -1,5 +1,5 @@
-from sympy import sympify, Add, Mul, Pow, I, Function, Integer, S, sympify
-from sympy.core.basic import Atom, Basic
+from sympy import Expr, sympify, Add, Mul, Pow, I, Function, Integer, S, sympify
+from sympy.core.basic import Atom
 
 """
 Notes:
@@ -34,7 +34,7 @@ __all__ = [
     'InnerProduct'
 ]
 
-class Dagger(Basic):
+class Dagger(Expr):
     """
     General hermitian conjugate operation.
     """
@@ -42,9 +42,9 @@ class Dagger(Basic):
     def __new__(cls, arg):
         arg = sympify(arg)
         r = cls.eval(arg)
-        if isinstance(r, Basic):
+        if isinstance(r, Expr):
             return r
-        obj = Basic.__new__(cls, arg)
+        obj = Expr.__new__(cls, arg)
         return obj
 
     @classmethod
@@ -55,7 +55,7 @@ class Dagger(Basic):
         try:
             d = arg._eval_dagger()
         except:
-            if isinstance(arg, Basic):
+            if isinstance(arg, Expr):
                 if arg.is_Add:
                     return Add(*tuple(map(Dagger, arg.args)))
                 if arg.is_Mul:
@@ -115,7 +115,7 @@ class KroneckerDelta(Function):
     def __str__(self):
         return 'd(%s,%s)'% (self.args[0],self.args[1])
 
-class Operator(Basic):
+class Operator(Expr):
     """
     Base class for non-commuting Quantum operators.
 
@@ -128,7 +128,7 @@ class Operator(Basic):
 
     def __new__(cls, name):
         name = sympify(name)
-        obj = Basic.__new__(cls, name, commutative=False)
+        obj = Expr.__new__(cls, name, commutative=False)
         return obj
 
     @property
@@ -237,7 +237,7 @@ class Commutator(Function):
         return "\\left[%s,%s\\right]"%tuple([
             printer._print(arg) for arg in self.args])
 
-class State(Basic):
+class State(Expr):
     """
     General abstract quantum state.
 
@@ -249,7 +249,7 @@ class State(Basic):
     rbracket = ')'
 
     def __new__(cls, name):
-        obj = Basic.__new__(cls, name, commutative=False)
+        obj = Expr.__new__(cls, name, commutative=False)
         return obj
 
     @property
@@ -289,9 +289,9 @@ class Bra(State):
         if isinstance(other, Ket):
             return InnerProduct(self, other)
         else:
-            return Basic.__mul__(self, other)
+            return Expr.__mul__(self, other)
 
-class InnerProduct(Basic):
+class InnerProduct(Expr):
     """
     An unevaluated inner product between a Bra and Ket.
     """
@@ -300,9 +300,9 @@ class InnerProduct(Basic):
         assert isinstance(bra, Bra), 'must be a Bra'
         assert isinstance(ket, Ket), 'must be a Ket'
         r = cls.eval(bra, ket)
-        if isinstance(r, Basic):
+        if isinstance(r, Expr):
             return r
-        obj = Basic.__new__(cls, *(bra, ket), **dict(commutative=True))
+        obj = Expr.__new__(cls, *(bra, ket), **dict(commutative=True))
         return obj
 
     @classmethod
