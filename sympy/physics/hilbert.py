@@ -13,7 +13,7 @@ class HilbertSpace(Expr):
 
     Examples
     ========
-    
+
     """
 
     description = 'General abstract Hilbert space.'
