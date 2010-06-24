@@ -44,10 +44,7 @@ class HilbertSpace(Expr):
     def __pow__(self, other, mod=None):
         if mod is not None:
             raise ValueError('The third argument to __pow__ is not supported for Hilbert spaces.')
-        times = sympify(other)
-        if not (times.is_Integer and times >= 0):
-            raise ValueError('Hilbert spaces can only be raised to positive integer powers: %r' % times)
-        return DirectPowerHilbertSpace(self, times)
+        return DirectPowerHilbertSpace(self, other)
 
     def __contains__(self, other):
         """Is the operator or state in this Hilbert space."""
@@ -170,10 +167,10 @@ class FockSpace(HilbertSpace):
         return 'Hilbert space of Fock space.'
 
     def _sympyrepr(self, printer, *args):
-        return "FockSpace(%s)" % printer._print(self.interval, *args)
+        return "FockSpace()"
 
     def _sympystr(self, printer, *args):
-        return "FS(%s)" % printer._print(self.interval, *args)
+        return "FS()"
 
 class TensorProductHilbertSpace(HilbertSpace):
     """
@@ -192,7 +189,7 @@ class TensorProductHilbertSpace(HilbertSpace):
         r = cls.eval(args)
         if isinstance(r, Expr):
             return r
-        obj = Expr.__new__(cls, *args)
+        obj = Expr.__new__(cls, *args, commutative=False)
         return obj
 
     @classmethod
@@ -200,16 +197,38 @@ class TensorProductHilbertSpace(HilbertSpace):
         """Evaluates the direct product."""
         new_args = []
         recall = False
+        #flatten arguments
         for arg in args:
             if isinstance(arg, TensorProductHilbertSpace):
                 new_args.extend(arg.args)
                 recall = True
-            elif isinstance(arg, HilbertSpace):
+            elif isinstance(arg, (HilbertSpace, DirectPowerHilbertSpace)):
                 new_args.append(arg)
             else:
                 raise TypeError('Hilbert spaces can only be multiplied by other Hilbert spaces: %r' % arg)
+        #combine like arguments into direct powers
+        comb_args = []
+        prev_arg = None
+        for new_arg in new_args:
+            if prev_arg != None:
+                if isinstance(new_arg, DirectPowerHilbertSpace) and isinstance(prev_arg, DirectPowerHilbertSpace) and new_arg.base == prev_arg.base:
+                    prev_arg = new_arg.base**(new_arg.exp+prev_arg.exp)
+                elif isinstance(new_arg, DirectPowerHilbertSpace) and new_arg.base == prev_arg:
+                    prev_arg = prev_arg**(new_arg.exp+1)
+                elif isinstance(prev_arg, DirectPowerHilbertSpace) and new_arg == prev_arg.base:
+                    prev_arg = new_arg**(prev_arg.exp+1)
+                elif new_arg == prev_arg:
+                    prev_arg = new_arg**2
+                else:
+                    comb_args.append(prev_arg)
+                    prev_arg = new_arg
+            elif prev_arg == None:
+                prev_arg = new_arg
+        comb_args.append(prev_arg)
         if recall:
-            return TensorProductHilbertSpace(*new_args)
+            return TensorProductHilbertSpace(*comb_args)
+        elif len(comb_args) == 1:
+            return DirectPowerHilbertSpace(comb_args[0].base, comb_args[0].exp)
         else:
             return None
 
@@ -267,7 +286,7 @@ class DirectSumHilbertSpace(HilbertSpace):
         r = cls.eval(args)
         if isinstance(r, Expr):
             return r
-        obj = Expr.__new__(cls, *args)
+        obj = Expr.__new__(cls, *args, commutative=False)
         return obj
 
     @classmethod
@@ -275,6 +294,7 @@ class DirectSumHilbertSpace(HilbertSpace):
         """Evaluates the direct product."""
         new_args = []
         recall = False
+        #flatten arguments
         for arg in args:
             if isinstance(arg, DirectSumHilbertSpace):
                 new_args.extend(arg.args)
@@ -331,15 +351,25 @@ class DirectPowerHilbertSpace(HilbertSpace):
     """
 
     def __new__(cls, *args):
-        return Expr.__new__(cls, *args)
+        new_args = args[0], sympify(args[1])
+        exp = new_args[1]
+        if exp == 1:
+            return args[0]
+        if not (exp.is_Integer and exp >= 0 or exp.is_Symbol):
+            raise ValueError('Hilbert spaces can only be raised to positive integer powers or symbols: %r' % exp)
+        return Expr.__new__(cls, *new_args, commutative=False)
+
+    def _eval_subs(self, old, new):
+        r = self.__class__(self.base.subs(old, new), self.exp.subs(old, new))
+        return r
 
     @property
     def base(self):
-        return self._args[0]
+        return self.args[0]
 
     @property
     def exp(self):
-        return self._args[1]
+        return self.args[1]
 
     @property
     def dimension(self):
@@ -349,7 +379,12 @@ class DirectPowerHilbertSpace(HilbertSpace):
     def description(self):
         return "An exponentiated Hilbert space."
 
-    @property
     def as_product(self):
         args = int(self.exp)*[self.base]
         return TensorProductHilbertSpace(*args)
+
+    def _sympyrepr(self, printer, *args):
+        return "DirectPowerHilbertSpace(%s,%s)" % (printer._print(self.base, *args), printer._print(self.exp, *args))
+
+    def _sympystr(self, printer, *args):
+        return "%s**%s" % (printer._print(self.base, *args), printer._print(self.exp, *args))
