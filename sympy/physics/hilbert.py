@@ -351,13 +351,29 @@ class DirectPowerHilbertSpace(HilbertSpace):
     """
 
     def __new__(cls, *args):
+        r = cls.eval(args)
+        if isinstance(r, Expr):
+            return r
+        return Expr.__new__(cls, *r, commutative=False)
+
+    @classmethod
+    def eval(cls, args):
         new_args = args[0], sympify(args[1])
         exp = new_args[1]
+        #simplify hs**1 -> hs
         if exp == 1:
             return args[0]
-        if not (exp.is_Integer and exp >= 0 or exp.is_Symbol):
-            raise ValueError('Hilbert spaces can only be raised to positive integer powers or symbols: %r' % exp)
-        return Expr.__new__(cls, *new_args, commutative=False)
+        #simplify hs**0 -> 1
+        if exp == 0:
+            return sympify(1)
+        #check (and allow) for hs**(x+42+y...) case
+        if len(exp.atoms()) == 1:
+            if not (exp.is_Integer and exp >= 0 or exp.is_Symbol):
+                raise ValueError('Hilbert spaces can only be raised to positive integer powers or symbols: %r' % exp)
+        for power in exp.atoms():
+            if not (power.is_Integer or power.is_Symbol):
+                raise ValueError('Hilbert spaces can only be raised to positive integer powers or symbols: %r' % exp)
+        return new_args
 
     def _eval_subs(self, old, new):
         r = self.__class__(self.base.subs(old, new), self.exp.subs(old, new))
@@ -373,18 +389,21 @@ class DirectPowerHilbertSpace(HilbertSpace):
 
     @property
     def dimension(self):
-        return self.base.dimension**self.exp
+        if self.base.dimension == oo:
+            return oo
+        else:
+            return self.base.dimension**self.exp
 
     @property
     def description(self):
         return "An exponentiated Hilbert space."
 
-    def as_product(self):
-        args = int(self.exp)*[self.base]
-        return TensorProductHilbertSpace(*args)
+#    def as_product(self):
+#        args = int(self.exp)*[self.base]
+#        return TensorProductHilbertSpace(*args)
 
     def _sympyrepr(self, printer, *args):
         return "DirectPowerHilbertSpace(%s,%s)" % (printer._print(self.base, *args), printer._print(self.exp, *args))
 
     def _sympystr(self, printer, *args):
-        return "%s**%s" % (printer._print(self.base, *args), printer._print(self.exp, *args))
+        return "%s**(%s)" % (printer._print(self.base, *args), printer._print(self.exp, *args))
