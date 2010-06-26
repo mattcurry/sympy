@@ -70,6 +70,32 @@ class l2(HilbertSpace):
     Examples
     ========
 
+    Let's say you want to create an l2(2) Hilbert space (2 dimensional). All
+    you need to do simply type these commands in:
+
+        >>> from sympy.physics.hilbert import *
+        >>> hs = l2(2)
+        >>> hs
+        l2(2)
+
+    And creating l2 Hilbert spaces of different dimensions (e.g. infinite or
+    symbolic) is quite simple as well:
+
+        >>> from sympy import oo
+        >>> from sympy.abc import x
+        >>> hs = l2(oo)
+        >>> hs
+        l2(oo)
+        >>> hs = l2(x)
+        >>> hs
+        l2(x)
+
+    If you want to call an l2 Hilbert space's dimension, simply follow these
+    commands:
+
+        >>> hs = l2(42)
+        >>> hs.dimension
+        42
     """
 
     def __new__(cls, dimension):
@@ -103,10 +129,26 @@ class L2(HilbertSpace):
 
     L2 (big-ell-two) has a dimension of infinity. L2 is different than
     l2(oo) because the elements of L2 have an uncountable number of components,
-    that is, they are function.
+    that is, they are functions.
 
     Examples
     ========
+
+    If you want to create an L2 space over certain intervals (integers are used
+    here, but you can use oo or symbols), use commands such as these:
+
+        >>> from sympy.physics.hilbert import *
+        >>> HS = L2(Interval(-2, 42))
+        >>> HS
+        L2([-2, 42])
+
+    If you want to call an L2 Hilbert space's dimension or interval, simply follow
+    these commands:
+
+        >>> HS.interval
+        [-2, 42]
+        >>> HS.dimension
+        oo
     """
 
     def __new__(cls, interval):
@@ -148,6 +190,13 @@ class FockSpace(HilbertSpace):
     Examples
     ========
 
+    Creating a Fock space is quite simple:
+
+        >>> from sympy.physics.hilbert import *
+        >>> fs = FockSpace()
+        >>> fs
+        FS()
+
     References
     ==========
 
@@ -178,6 +227,32 @@ class TensorProductHilbertSpace(HilbertSpace):
 
     Examples
     ========
+
+    The tensor product between two Hilbert spaces is represented by the
+    operator "*" Only the same type of Hilbert space with the same
+    dimension and/or interval will be combined into a direct power, 
+    otherwise the tensor product behaves as follows:
+
+        >>> from sympy.physics.hilbert import *
+        >>> hs = l2(2)
+        >>> HS = L2(Interval(-42, 42))
+        >>> fs = FockSpace()
+        >>> tensor_product = hs*HS*fs
+        >>> tensor_product
+        l2(2)*L2([-42, 42])*FS()
+
+    Here is how the properties work:
+
+        >>> tensor_product.dimension
+        oo
+        >>> tensor_product.spaces
+        (l2(2), L2([-42, 42]), FS())
+
+    Identical Hilbert spaces will be combined into one direct power:
+
+        >>> ms = hs*hs*hs
+        >>> ms
+        l2(2)**(3)
 
     References
     ==========
@@ -277,6 +352,24 @@ class DirectSumHilbertSpace(HilbertSpace):
     Examples
     ========
 
+    This class uses the "+" operator to represent direct sums between
+    different Hilbert spaces. Here is a basic example:
+
+        >>> from sympy.physics.hilbert import *
+        >>> from sympy.abc import x
+        >>> hs = l2(x)
+        >>> HS = L2(Interval(0, 1))
+        >>> direct_sum = hs+HS
+        >>> direct_sum
+        l2(x)+L2([0, 1])
+
+    Here is how the properties work:
+
+        >>> direct_sum.dimension
+        oo
+        >>> direct_sum.spaces
+        (l2(x), L2([0, 1]))
+
     References
     ==========
 
@@ -344,6 +437,47 @@ class DirectPowerHilbertSpace(HilbertSpace):
     Examples
     ========
 
+    Direct powers (repeated tensor products) are represented by the
+    operator "**" Identical Hilbert spaces that are multiplied together
+    will be automatically combined into a single direct power. Here
+    are some examples:
+
+        >>> from sympy.physics.hilbert import *
+        >>> from sympy.abc import x
+        >>> p1 = l2(3)**2
+        >>> p1
+        l2(3)**(2)
+
+        >>> hs = l2(2)
+        >>> direct_power = hs*hs*(hs**2)*hs**x
+        >>> direct_power
+        l2(2)**(4 + x)
+
+        >>> HS = L2(Interval(-21, 21))
+        >>> dir_pow = HS**(42+x)
+        >>> dir_pow
+        L2([-21, 21])**(42 + x)
+
+    You can check certain properties of direct powers such as their
+    dimensions, bases, exponents, etc:
+
+        >>> p1.base
+        l2(3)
+        >>> p1.exp
+        2
+        >>> p1.dimension
+        9
+
+        >>> direct_power.dimension
+        2**(4 + x)
+
+        >>> dir_pow.base
+        L2([-21, 21])
+        >>> dir_pow.exp
+        42 + x
+        >>> dir_pow.dimension
+        oo
+
     References
     ==========
 
@@ -397,10 +531,6 @@ class DirectPowerHilbertSpace(HilbertSpace):
     @property
     def description(self):
         return "An exponentiated Hilbert space."
-
-#    def as_product(self):
-#        args = int(self.exp)*[self.base]
-#        return TensorProductHilbertSpace(*args)
 
     def _sympyrepr(self, printer, *args):
         return "DirectPowerHilbertSpace(%s,%s)" % (printer._print(self.base, *args), printer._print(self.exp, *args))

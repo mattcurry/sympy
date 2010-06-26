@@ -426,3 +426,4 @@ def test_DirectPowerHilbertSpace_mixed():
     true_test = s2*s3*s6*s22*s32*s62*s23*s33*s63*b3*b4*b32*b42*b33*b43*b53*f2
     assert isinstance(true_test, TensorProductHilbertSpace)
     assert true_test.dimension == oo
+    assert true_test == l2(5)**(8+x)*l2(oo)**(8+x)*l2(y)**(8+x)*L2(Interval(-42,42))**7*L2(Interval(-oo,oo))**7*L2(Interval(x, y))**(12+x)*FockSpace()**(10+x+y)
