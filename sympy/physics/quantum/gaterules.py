@@ -11,9 +11,10 @@ class GateRule(Basic):
     def rhs(self):
         return self.args[1]
 
-   def match(self, e):
+    def match(self, e):
         # Go through and return an equivalent expression to e, or None
         # This uses self.lhs and self.rhs to find things == e
+        
         
 
 _known_rules = []
