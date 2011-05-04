@@ -46,7 +46,7 @@ _known_rules.append(GateRule(CNOT(1,0)*X(1)*CNOT(1,0)*X(1)*X(0)))
 _known_rules.append(GateRule(CNOT(1,0)*Y(1)*CNOT(1,0)*Y(1)*X(0)))
 _known_rules.append(GateRule(CNOT(1,0)*Y(0)*CNOT(1,0)*Y(0)*Z(1)))
 _known_rules.append(GateRule(CNOT(1,0)*Z(0)*CNOT(1,0)*Z(0)*Z(1)))
-_known_rules.append(GateRule(CNOT(1,0)*H(0)*H(1)*CNOT(0,1)*H(1)*H(0))
+_known_rules.append(GateRule(CNOT(1,0)*H(0)*H(1)*CNOT(0,1)*H(1)*H(0)))
 
 def match_gate_rules(e):
     result = []
