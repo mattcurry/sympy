@@ -18,27 +18,37 @@ class GateRule(Basic):
         gate_num = len(rule)
         if isinstance(e, Mul):
             expr = list(e.args)
+            rexpr = expr[:]
             expr.reverse()
             expr_len = len(expr)
         else:
             expr = [e]
+            rexpr = [e]
             expr_len = 1
         if len(expr) > gate_num:
             return None
         else:
+            return_rules = []
             for c in range(gate_num):
                 rule.append(rule.pop(0))
-                rrule = rule[:]
-                rrule.reverse()
                 if rule[:expr_len] == expr:
-                    return rule[expr_len:]
+                    if Mul(*rule[expr_len:]) not in return_rules:
+                        return_rules.append(Mul(*rule[expr_len:]))
                 elif rule[-expr_len:] == expr:
-                    return rule[:-expr_len]
-                elif rrule[:expr_len] == expr:
-                    return rrule[expr_len:]
-                elif rrule[-expr_len:] == expr:
-                    return rrule[:-expr_len]
-            return None
+                    if Mul(*rule[:-expr_len]) not in return_rules:
+                        return_rules.append(Mul(*rule[:-expr_len]))
+                elif rule[:expr_len] == rexpr:
+                    rrule = rule[expr_len:]
+                    rrule.reverse()
+                    if Mul(*rrule) not in return_rules:
+                        return_rules.append(Mul(*rrule))
+                elif rule[-expr_len:] == rexpr:
+                    rrule = rule[:-expr_len]
+                    rrule.reverse()
+                    if Mul(*rrule) not in return_rules:
+                        return_rules.append(Mul(*rrule))
+            return return_rules
+        return None
 
 _known_rules = []
 _known_rules.append(GateRule(H(0)*X(0)*H(0)*Z(0)))
@@ -53,5 +63,5 @@ def match_gate_rules(e):
     for rule in _known_rules:
         r = rule.match(e)
         if r is not None:
-            result.append(r)
+            result.extend(r)
     return result
