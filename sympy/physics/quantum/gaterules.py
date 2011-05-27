@@ -34,15 +34,15 @@ class GateRule(Basic):
                 if rule[:expr_len] == expr:
                     if Mul(*rule[expr_len:]) not in return_rules:
                         return_rules.append(Mul(*rule[expr_len:]))
-                elif rule[-expr_len:] == expr:
+                if rule[-expr_len:] == expr:
                     if Mul(*rule[:-expr_len]) not in return_rules:
                         return_rules.append(Mul(*rule[:-expr_len]))
-                elif rule[:expr_len] == rexpr:
+                if rule[:expr_len] == rexpr:
                     rrule = rule[expr_len:]
                     rrule.reverse()
                     if Mul(*rrule) not in return_rules:
                         return_rules.append(Mul(*rrule))
-                elif rule[-expr_len:] == rexpr:
+                if rule[-expr_len:] == rexpr:
                     rrule = rule[:-expr_len]
                     rrule.reverse()
                     if Mul(*rrule) not in return_rules:
