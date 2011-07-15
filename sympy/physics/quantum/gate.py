@@ -1060,14 +1060,14 @@ def gate_simp(circuit):
 
     # Iterate through each element in circuit, simplify if possible.
     for i in xrange(len(circuit_args)):
-        # H,X,Y or Z squared is 1.
+        # H,CNOT,X,Y or Z squared is 1.
         # T**2 = S, S**2 = Z
         if isinstance(circuit_args[i], Pow):
             if isinstance(circuit_args[i].base,
-                (HadamardGate, XGate, YGate, ZGate))\
+                (HadamardGate, CNotGate, XGate, YGate, ZGate))\
                 and isinstance(circuit_args[i].exp, Number):
                 # Build a new circuit taking replacing the
-                # H,X,Y,Z squared with one.
+                # H,CNOT,X,Y,Z squared with one.
                 newargs = (circuit_args[:i] +\
                           (circuit_args[i].base**(circuit_args[i].exp % 2),) +\
                            circuit_args[i+1:])
