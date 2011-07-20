@@ -29,15 +29,16 @@ matrix_list = xs+ys+zs+hs+ss+ts+cnots
 
 num = [0,1]
 
-def count(base, number, digit=0):
-    if digit == len(num):
-        num.append(1)
-    elif number[digit] is base-1:
-        number[digit] = 0
-        digit += 1
-        count(base, number, digit)
-    else:
-        number[digit] += 1
+
+def count(base, number):
+    for i in xrange(len(number)):
+        if number[i] == (base-1):
+            number[i] = 0
+        else:
+            number[i] += 1
+            break
+    if number[i] == 0:
+        number.append(1)
 
 def number_to_gates(number):
     gates = []
