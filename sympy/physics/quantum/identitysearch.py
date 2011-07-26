@@ -68,22 +68,19 @@ def is_scalar_matrix(matrix):
             return False
     return True
 
-identities = open('/home/matt/Documents/gate_identities/%s-qubit_identities.txt' % numqubits, 'a')
-
-g = []
-
 while True:
+    if num[0] is 0:
+        matrices = number_to_matrices(num[1:])
+        cached = matrix_mul(matrices)
     gates = number_to_gates(num)
     if len(gate_simp(Mul(*gates)).args) == len(gates):
-        if num[0] is 0:
-            matrices = number_to_matrices(num[1:])
-            cached = matrix_mul(matrices)
         circuit = number_to_matrices(num[0])*cached
         if is_scalar_matrix(circuit):
+            identities = open('/home/matt/Documents/gate_identities/%s-qubit_identities.txt' % numqubits, 'a')
             identities.write(str(gate_simp(Mul(*gates)).args)+'\n')
+            identities.close()
             print num
             print gate_simp(Mul(*gates)).args
-            print matrices
             print circuit
-            g.append(gates)
+            print ''
     count(base, num)
