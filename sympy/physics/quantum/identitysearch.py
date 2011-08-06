@@ -17,13 +17,13 @@ gate_list = Xs+Ys+Zs+Hs+Ss+Ts+CNOTs
 
 base = len(gate_list)
 
-xs = [represent(X(i), nqubits=numqubits) for i in xrange(numqubits)]
-ys = [represent(Y(i), nqubits=numqubits) for i in xrange(numqubits)]
-zs = [represent(Z(i), nqubits=numqubits) for i in xrange(numqubits)]
-hs = [represent(H(i), nqubits=numqubits) for i in xrange(numqubits)]
-ss = [represent(S(i), nqubits=numqubits) for i in xrange(numqubits)]
-ts = [represent(T(i), nqubits=numqubits) for i in xrange(numqubits)]
-cnots = [represent(CNOT(i,j), nqubits=numqubits) for i in xrange(numqubits) for j in xrange(numqubits) if i != j]
+xs = [represent(X(i), nqubits=numqubits, format='scipy.sparse') for i in xrange(numqubits)]
+ys = [represent(Y(i), nqubits=numqubits, format='scipy.sparse') for i in xrange(numqubits)]
+zs = [represent(Z(i), nqubits=numqubits, format='scipy.sparse') for i in xrange(numqubits)]
+hs = [represent(H(i), nqubits=numqubits, format='scipy.sparse') for i in xrange(numqubits)]
+ss = [represent(S(i), nqubits=numqubits, format='scipy.sparse') for i in xrange(numqubits)]
+ts = [represent(T(i), nqubits=numqubits, format='scipy.sparse') for i in xrange(numqubits)]
+cnots = [represent(CNOT(i,j), nqubits=numqubits, format='scipy.sparse') for i in xrange(numqubits) for j in xrange(numqubits) if i != j]
 
 matrix_list = xs+ys+zs+hs+ss+ts+cnots
 
@@ -61,12 +61,11 @@ def matrix_mul(matrices):
     return mul
 
 def is_scalar_matrix(matrix):
-    if matrix.is_diagonal() is False:
-        return False
-    for i in xrange(matrix.cols-1):
-        if matrix[i,i] != matrix[i+1,i+1]:
-            return False
-    return True
+    if list(matrix.nonzero()[0]) == list(matrix.nonzero()[1]):
+        diag = list(matrix.diagonal())
+        if diag.count(diag[0]) == len(diag):
+            return True
+    return False
 
 while True:
     if num[0] is 0:
